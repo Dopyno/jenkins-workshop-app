@@ -6,3 +6,7 @@ const express = require('express');
     });
 
     module.exports = app;
+// Add this before module.exports in app.js
+        app.get('/new', (req, res) => {
+          res.send('Hello, New Endpoint!');
+        });
