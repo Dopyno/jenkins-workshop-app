@@ -10,7 +10,7 @@ pipeline {
     environment {
         REGISTRY = "ghcr.io"
         // For GitHub Container Registry, we need the full path: ghcr.io/username/repository
-        IMAGE_NAME = "${REGISTRY}/vbota1/jenkins-workshop-app".toLowerCase()
+        IMAGE_NAME = "${REGISTRY}/Dopyno/jenkins-workshop-app".toLowerCase()
     }    
 
     stages {
