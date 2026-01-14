@@ -6,6 +6,9 @@ pipeline {
         // Set a global timeout for the entire pipeline to prevent it from running indefinitely.
         timeout(time: 30, unit: 'MINUTES')
     }
+    parameters {
+        string(name: 'STAGING_SERVER_IP', defaultValue: '172.26.160.146', description: 'IP address of the staging server')
+    }
 
     environment {
         REGISTRY = "ghcr.io"
@@ -49,6 +52,19 @@ pipeline {
                         def customImage = docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}", '.')
                         customImage.push()
                         customImage.push('latest')
+                    }
+                }
+            }
+            stage('Deploy to Staging') {
+            agent any
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
+            steps {
+                echo "Deploying the application to staging..."
+                withCredentials([usernamePassword(credentialsId: 'github-packages-pat', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PAT')]) {
+                    sshagent(['staging-server-credentials']) {
+                        sh "ssh -o StrictHostKeyChecking=no devop@${params.STAGING_SERVER_IP} \"echo ${GITHUB_PAT} | docker login ${REGISTRY} -u ${GITHUB_USER} --password-stdin && docker pull ${IMAGE_NAME}:latest && docker stop web || true && docker rm web || true && docker run -d --name web -p 80:3000 ${IMAGE_NAME}:latest\""
                     }
                 }
             }
