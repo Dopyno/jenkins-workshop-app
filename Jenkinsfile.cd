@@ -1,4 +1,5 @@
 pipeline {
+    // Define a global agent 'none' to enforce per-stage agent definitions
     agent none
 
     options {
@@ -10,15 +11,17 @@ pipeline {
         REGISTRY = "ghcr.io"
         // For GitHub Container Registry, we need the full path: ghcr.io/username/repository
         IMAGE_NAME = "${REGISTRY}/vbota1/jenkins-workshop-app".toLowerCase()
-    }
+    }    
 
     stages {
         stage('Checkout') {
+            // This stage can run on any available agent
             agent any
             options {
                 timeout(time: 5, unit: 'MINUTES')
             }            
             steps {
+                echo "Checking out code..."
                 checkout scm
             }
         }
@@ -42,13 +45,13 @@ pipeline {
             steps {
                 script {
                     echo "Pushing the Docker image to ${env.IMAGE_NAME}..."
-                    docker.withRegistry("https://${REGISTRY}", 'github-scm-credentials') {
+                    docker.withRegistry("https://${REGISTRY}", 'git-scm-credentials') {
                         def customImage = docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}", '.')
                         customImage.push()
                         customImage.push('latest')
                     }
                 }
             }
-        }
+        }        
     }
 }
